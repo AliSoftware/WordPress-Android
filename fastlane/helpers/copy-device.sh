@@ -28,7 +28,7 @@ system_image_for_device () {
 system_image_code_for_device () {
     device_file=$1
     sysdir=$(sed -n "/image.sysdir.1/s/.*= *//p" $device_file)
-    echo ${sysdir%/} | sed "s/\//;/"
+    echo ${sysdir%/} | sed "s/\//;/g"
 }
 
 # Set up some path variables
@@ -55,6 +55,6 @@ sed -i.bak "s/SYSTEM_IMAGE/${system_image}/g" "${config_file}"
 
 # Install System Image
 system_image_path=$(system_image_code_for_device $device_file)
-${ANDROID_HOME:-$ANDROID_SDK_ROOT}/tools/bin/sdkmanager --list
+# ${ANDROID_HOME:-$ANDROID_SDK_ROOT}/tools/bin/sdkmanager --list
 echo "Installing ${system_image_path}..."
 ${ANDROID_HOME:-$ANDROID_SDK_ROOT}/tools/bin/sdkmanager "${system_image_path}"
