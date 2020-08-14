@@ -381,16 +381,16 @@ jobs:
           name: Install ImageMagick
           command: |
             sudo apt-get update -y
-            sudo apt-get install -y pkg-config
-            sudo apt-get install -y imagemagick
+            sudo apt-get install -y pkg-config imagemagick libmagickwand-dev
       - run:
-          name: Configure Bundle with rmagick for screenshots
+          name: Bundle install with rmagick
           command: |
             # remove 'screenshots' from the 'without' bundle config options in case it's set
             bundle config --local --delete without
             bundle config --local with screenshots
-      - bundle-install/bundle-install:
-          cache_key_prefix: generate-screenshots
+            bundle install
+      # - bundle-install/bundle-install:
+      #     cache_key_prefix: generate-screenshots
       ### BEGIN Fork Fix
       # - run:
       #     name: Copy Secrets
