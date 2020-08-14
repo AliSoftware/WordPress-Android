@@ -378,10 +378,11 @@ jobs:
           init-submodules: true
       - checkout-submodules
       - run:
-          name: Install ImageMagick
+          name: Install ImageMagick and libpulse0
           command: |
             sudo apt-get update -y
             sudo apt-get install -y pkg-config imagemagick libmagickwand-dev
+            sudo apt-get install -y libpulse0
       - run:
           name: Configure bundle for screenshots with rmagick
           command: |
