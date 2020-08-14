@@ -22,12 +22,8 @@ emulator_base_folder=$(dirname $1)
 
 system_image_for_device () {
     device_file=$1
-
-    line=$(cat "${device_file}" | grep "image.sysdir.1")    # Get the system image directory line
-    directory="$(cut -d'=' -f2 <<<${line})"                 # Extract the system image directory
-
-    IFS='/' read -r -a array <<< "${directory}"     # system-images android-27 google_apis x86
-    echo ${array[1]}                                # android-27
+    # Only print lines matching 'image.systemdir.1' and for those substitute the whole value with just the part after system-images/
+    sed -n "/image.sysdir.1/s/.*system-images\/\([^\/]*\)\/.*/\\1/p" $device_file
 }
 
 # Set up some path variables
@@ -41,7 +37,7 @@ config_file="${HOME}/.android/avd/${device_handle}.ini"
 # - The .ini file that registers the emulator with AVD
 
 rm -rf "${device_folder}"
-mkdir "${device_folder}"
+mkdir -p "${device_folder}"
 cp "${device_config}" "${device_file}"
 cp "${emulator_base_folder}/base.ini" "${config_file}"
 
