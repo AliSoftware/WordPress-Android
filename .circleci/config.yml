@@ -385,7 +385,7 @@ jobs:
       - run:
           name: Install dependencies for qemu
           command: |
-            sudo apt-get install -y libpulse0 libnss3
+            sudo apt-get install -y libpulse0 libnss3 libxcomposite1
       - run:
           name: Configure bundle for screenshots with rmagick
           command: |
