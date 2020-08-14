@@ -383,7 +383,7 @@ jobs:
             sudo apt-get update -y
             sudo apt-get install -y pkg-config imagemagick libmagickwand-dev
       - run:
-          name: Bundle install with rmagick
+          name: Configure bundle for screenshots with rmagick
           command: |
             # remove 'screenshots' from the 'without' bundle config options in case it's set
             bundle config --local --delete without
