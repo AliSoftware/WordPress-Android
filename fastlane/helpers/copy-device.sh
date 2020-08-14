@@ -21,7 +21,11 @@ device_handle="${device_config_filename%.*}"
 emulator_base_folder=$(dirname $1)
 
 # A handy function we'll need later
-function join_by { local IFS="$1"; shift; echo "$*"; }
+function join_by {
+    local IFS="$1"
+    shift
+    echo "$*"
+}
 function system_image_for_device {
     device_file=$1
 
