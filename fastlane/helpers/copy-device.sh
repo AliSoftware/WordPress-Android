@@ -20,13 +20,7 @@ device_config_filename=$(basename -- "$1")
 device_handle="${device_config_filename%.*}"
 emulator_base_folder=$(dirname $1)
 
-# A handy function we'll need later
-function join_by {
-    local IFS="$1"
-    shift
-    echo "$*"
-}
-function system_image_for_device {
+system_image_for_device () {
     device_file=$1
 
     line=$(cat "${device_file}" | grep "image.sysdir.1")    # Get the system image directory line
@@ -55,5 +49,5 @@ cp "${emulator_base_folder}/base.ini" "${config_file}"
 system_image=$(system_image_for_device $device_file)
 
 # Apply the device handle and system image to the configuration
-sed -i '' "s/DEVICE_HANDLE/${device_handle}/g" "${config_file}"
-sed -i '' "s/SYSTEM_IMAGE/${system_image}/g" "${config_file}"
+sed -i.bak "s/DEVICE_HANDLE/${device_handle}/g" "${config_file}"
+sed -i.bak "s/SYSTEM_IMAGE/${system_image}/g" "${config_file}"
