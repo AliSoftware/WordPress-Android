@@ -25,6 +25,11 @@ system_image_for_device () {
     # Only print lines matching 'image.systemdir.1' and for those substitute the whole value with just the part after system-images/
     sed -n "/image.sysdir.1/s/.*system-images\/\([^\/]*\)\/.*/\\1/p" $device_file
 }
+system_image_code_for_device () {
+    device_file=$1
+    sysdir=$(sed -n "/image.sysdir.1/s/.*= *//p" $device_file)
+    echo ${sysdir%/} | sed "s/\//;/"
+}
 
 # Set up some path variables
 device_folder="${HOME}/.android/avd/${device_handle}.avd"
@@ -47,3 +52,8 @@ system_image=$(system_image_for_device $device_file)
 # Apply the device handle and system image to the configuration
 sed -i.bak "s/DEVICE_HANDLE/${device_handle}/g" "${config_file}"
 sed -i.bak "s/SYSTEM_IMAGE/${system_image}/g" "${config_file}"
+
+# Install System Image
+system_image_path=$(system_image_code_for_device $device_file)
+echo "Installing ${system_image_path}..."
+${ANDROID_HOME:-$ANDROID_SDK_ROOT}/tools/bin/sdkmanager "${system_image_path}"
