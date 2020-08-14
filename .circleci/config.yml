@@ -12,6 +12,9 @@ parameters:
   translation_review_lang_id:
     type: string
     default: all-lang
+  generate_screenshots:
+    type: boolean
+    default: false
 
 commands:
   copy-gradle-properties:
@@ -366,10 +369,61 @@ jobs:
       - store_artifacts:
           path: Artifacts
           destination: Artifacts
-
+  generate-screenshots:
+    executor:
+      name: android/default
+      api-version: "28"
+    steps:
+      - git/shallow-checkout:
+          init-submodules: true
+      - checkout-submodules
+      - run:
+          name: Configure Bundle with screenshots
+          command: bundle config set with 'screenshots'
+      - bundle-install/bundle-install:
+          cache_key_prefix: generate-screenshots
+      ### BEGIN Fork Fix
+      # - run:
+      #     name: Copy Secrets
+      #     command: bundle exec fastlane run configure_apply
+      - copy-gradle-properties # Replaces configure_apply for fork, step 1
+      - run:
+          name: Setup OAuth Secrets # Replaces configure_apply for fork, step 2
+          command: |
+            sed -i "s/wp.oauth.app_id *=.*/wp.oauth.app_id = $OAUTH_APPID/" gradle.properties
+            sed -i "s/wp.oauth.app_secret *=.*/wp.oauth.app_secret = $OAUTH_APPSECRET/" gradle.properties
+      ### END Fork Fix
+      - update-gradle-memory
+      - android/restore-gradle-cache
+      - restore-gutenberg-bundle-cache
+      - run:
+          name: Ensure assets folder exists
+          command: mkdir -p libs/gutenberg-mobile/gutenberg/packages/react-native-bridge/android/src/main/assets
+      - attach_workspace:
+          at: libs/gutenberg-mobile/gutenberg/packages/react-native-bridge/android/src/main/assets
+      - run:
+          name: Generate Raw Screenshots
+          # environment:
+          #   SUPPRESS_GUTENBERG_MOBILE_JS_BUNDLE_BUILD: 1
+          command: bundle exec fastlane android screenshots
+      - android/save-gradle-cache
+      - store_artifacts:
+          path: fastlane/metadata/android
+          destination: RawScreenshots
+      - run:
+          name: Generate Promo Screenshots
+          # environment:
+          #   SUPPRESS_GUTENBERG_MOBILE_JS_BUNDLE_BUILD: 1
+          command: bundle exec fastlane android create_promo_screenshots
+      - store_artifacts:
+          path: fastlane/promo_screenshots
+          destination: PromoScreenshots
 workflows:
   wordpress_android:
-    unless: << pipeline.parameters.translation_review_build >>
+    unless:
+      or:
+        - << pipeline.parameters.translation_review_build >>
+        - << pipeline.parameters.generate_screenshots >>
     jobs:
       - gutenberg-bundle-build
       - strings-check
@@ -402,7 +456,10 @@ workflows:
                 - develop
                 - /^release.*/
   Optional Tests:
-    unless: << pipeline.parameters.translation_review_build >>
+    unless:
+      or: 
+        - << pipeline.parameters.translation_review_build >>
+        - << pipeline.parameters.generate_screenshots >>
     #Optionally run connected tests on PRs
     jobs:
       - Hold:
@@ -419,3 +476,7 @@ workflows:
     when: << pipeline.parameters.translation_review_build >>
     jobs:
       - translation-review-build
+  Screenshots:
+    when: << pipeline.parameters.generate_screenshots >>
+    jobs:
+      - generate-screenshots
